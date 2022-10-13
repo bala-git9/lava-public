@@ -3,7 +3,7 @@ from lava.magma.core.model.py.ports import PyOutPort
 from lava.magma.core.model.py.type import LavaPyType
 import numpy as np
 
-class PlasticNeuronModel(PyLoihiProcessModel):
+class NeuronModel(PyLoihiProcessModel):
 
     def __init__(self, proc_params: dict) -> None:
         super().__init__(proc_params)
@@ -13,7 +13,7 @@ class PlasticNeuronModel(PyLoihiProcessModel):
         self._update_traces = self.proc_params['update_traces']
 
 
-class PlasticNeuronModelFixed(PlasticNeuronModel):
+class NeuronModelFixed(NeuronModel):
     # Learning Ports
     s_out_bap: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, bool, precision=1)
     s_out_y2: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, np.int32, precision=7)
@@ -23,7 +23,7 @@ class PlasticNeuronModelFixed(PlasticNeuronModel):
          super().__init__(proc_params)
 
 
-class PlasticNeuronModelFloat(PlasticNeuronModel):
+class NeuronModelFloat(NeuronModel):
 
     # Learning Ports
     s_out_bap: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, bool)

@@ -5,13 +5,13 @@
 import numpy as np
 import typing as ty
 
-from lava.magma.core.process.process import LogConfig, AbstractProcess
+from lava.magma.core.process.process import LogConfig
 from lava.magma.core.process.variable import Var
 from lava.magma.core.process.ports.ports import InPort, OutPort
-from lava.magma.core.process.neuron import PlasticNeuronProcess
+from lava.magma.core.process.neuron import NeuronProcess
 
 
-class AbstractLIF(AbstractProcess):
+class AbstractLIF(NeuronProcess):
     """Abstract class for variables common to all neurons with leaky
     integrator dynamics."""
     def __init__(self,
@@ -101,7 +101,7 @@ class LIF(AbstractLIF):
         self.vth = Var(shape=(1,), init=vth)
 
 
-class LearningLIF(PlasticNeuronProcess, AbstractLIF):
+class LearningLIF(AbstractLIF):
     """Leaky-Integrate-and-Fire (LIF) neural Process with learning enabled.
 
     Parameters

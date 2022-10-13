@@ -3,7 +3,7 @@ import typing as ty
 from lava.magma.core.process.ports.ports import OutPort
 from lava.magma.core.process.process import AbstractProcess
 
-class PlasticNeuronProcess:
+class NeuronProcess(AbstractProcess):
     def __init__(self,
                  shape: ty.Tuple[int, ...],
                  enable_learning: bool = False,

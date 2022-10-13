@@ -9,10 +9,10 @@ from lava.magma.core.resources import CPU
 from lava.magma.core.decorator import implements, requires, tag
 from lava.magma.core.model.py.model import PyLoihiProcessModel
 from lava.proc.lif.process import LIF, TernaryLIF, LearningLIF
-from lava.magma.core.model.py.neuron import PlasticNeuronModelFloat, PlasticNeuronModelFixed
+from lava.magma.core.model.py.neuron import NeuronModelFloat, NeuronModelFixed
 
 
-class AbstractPyLifModelFloat(PyLoihiProcessModel):
+class AbstractPyLifModelFloat(NeuronModelFloat):
     """Abstract implementation of floating point precision
     leaky-integrate-and-fire neuron model.
 
@@ -59,9 +59,11 @@ class AbstractPyLifModelFloat(PyLoihiProcessModel):
         self.reset_voltage(spike_vector=s_out)
         self.s_out.send(s_out)
 
+        if self._enable_learning:
+            self.s_out_bap.send(s_out)
 
 
-class AbstractPyLifModelFixed(PyLoihiProcessModel):
+class AbstractPyLifModelFixed(NeuronModelFixed):
     """Abstract implementation of fixed point precision
     leaky-integrate-and-fire neuron model. Implementations like those
     bit-accurate with Loihi hardware inherit from here.
@@ -199,7 +201,8 @@ class AbstractPyLifModelFixed(PyLoihiProcessModel):
         self.reset_voltage(spike_vector=s_out)
         self.s_out.send(s_out)
 
-
+        if self._enable_learning:
+            self.s_out_bap.send(s_out)
 
 @implements(proc=LIF, protocol=LoihiProtocol)
 @requires(CPU)
@@ -221,7 +224,7 @@ class PyLifModelFloat(AbstractPyLifModelFloat):
 @implements(proc=LearningLIF, protocol=LoihiProtocol)
 @requires(CPU)
 @tag('floating_pt')
-class PyLearningLifModelFloat(PlasticNeuronModelFloat, AbstractPyLifModelFloat):
+class PyLearningLifModelFloat(AbstractPyLifModelFloat):
     """Implementation of Leaky-Integrate-and-Fire neural process in floating
     point precision with learning enabled. 
     """
@@ -251,13 +254,6 @@ class PyLearningLifModelFloat(PlasticNeuronModelFloat, AbstractPyLifModelFloat):
         """Calculates the third factor trace and sends it to the 
         Dense process for learning.
         """
-
-        a_in_data = self.a_in.recv()
-        self.subthr_dynamics(activation_in=a_in_data)
-        s_out = self.spiking_activation()
-        self.reset_voltage(spike_vector=s_out)
-        self.s_out.send(s_out)
-
         a_graded_in = self.a_graded_reward_in.recv()
 
         y2 = self.calculate_third_factor_trace(a_graded_in)
@@ -265,57 +261,16 @@ class PyLearningLifModelFloat(PlasticNeuronModelFloat, AbstractPyLifModelFloat):
 
         self.s_out_y2.send(y2)
         self.s_out_y3.send(y3)
-        self.s_out_bap.send(s_out)
-
+    
         super().run_spk()
 
+
+        
+        
 @implements(proc=LIF, protocol=LoihiProtocol)
 @requires(CPU)
 @tag('bit_accurate_loihi', 'fixed_pt')
 class PyLifModelBitAcc(AbstractPyLifModelFixed):
-    """Implementation of Leaky-Integrate-and-Fire neural process bit-accurate
-    with Loihi's hardware LIF dynamics, which means, it mimics Loihi
-    behaviour bit-by-bit.
-
-    Currently missing features (compared to Loihi 1 hardware):
-
-    - refractory period after spiking
-    - axonal delays
-
-    Precisions of state variables
-
-    - du: unsigned 12-bit integer (0 to 4095)
-    - dv: unsigned 12-bit integer (0 to 4095)
-    - bias_mant: signed 13-bit integer (-4096 to 4095). Mantissa part of neuron
-      bias.
-    - bias_exp: unsigned 3-bit integer (0 to 7). Exponent part of neuron bias.
-    - vth: unsigned 17-bit integer (0 to 131071).
-
-    """
-    s_out: PyOutPort = LavaPyType(PyOutPort.VEC_DENSE, np.int32, precision=24)
-    vth: int = LavaPyType(int, np.int32, precision=17)
-
-    def __init__(self, proc_params):
-        super(PyLifModelBitAcc, self).__init__(proc_params)
-        self.effective_vth = 0
-
-    def scale_threshold(self):
-        """Scale threshold according to the way Loihi hardware scales it. In
-        Loihi hardware, threshold is left-shifted by 6-bits to MSB-align it
-        with other state variables of higher precision.
-        """
-        self.effective_vth = np.left_shift(self.vth, self.vth_shift)
-        self.isthrscaled = True
-
-    def spiking_activation(self):
-        """Spike when voltage exceeds threshold.
-        """
-        return self.v > self.effective_vth
-
-@implements(proc=LearningLIF, protocol=LoihiProtocol)
-@requires(CPU)
-@tag('bit_accurate_loihi', 'fixed_pt')
-class PyLearningLifModelBitAcc(PlasticNeuronModelFixed, AbstractPyLifModelFixed):
     """Implementation of Leaky-Integrate-and-Fire neural process bit-accurate
     with Loihi's hardware LIF dynamics, which means, it mimics Loihi
     behaviour bit-by-bit.
