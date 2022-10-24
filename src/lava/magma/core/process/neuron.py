@@ -5,6 +5,9 @@ from lava.magma.core.process.process import AbstractProcess
 
 
 class PlasticNeuronProcess:
+    """
+    Base class for plastic neuron processes.
+    """
     def __init__(self,
                  shape: ty.Tuple[int, ...],
                  *args,

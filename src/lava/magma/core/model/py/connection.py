@@ -50,7 +50,6 @@ class PlasticConnection:
     tag_2 = None
     tag_1 = None
 
-    weights = None
     time_step = None
 
     def __init__(self, proc_params: dict) -> None:

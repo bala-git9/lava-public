@@ -17,7 +17,7 @@
 from lava.magma.core.learning.learning_rule import LoihiLearningRule
 
 
-class R_STDPLoihi(LoihiLearningRule):
+class RewardModulatedSTDP(LoihiLearningRule):
     def __init__(
             self,
             learning_rate: float,
@@ -80,7 +80,7 @@ class R_STDPLoihi(LoihiLearningRule):
         y1_tau = post_trace_decay_tau
         y2_tau = 2 ** 32 - 1
 
-        # Elgibility trace represented as dt
+        # Eligibility trace represented as dt
         dt = f"{self.learning_rate} * {self.A_plus} * x0 * y1 +" \
              f"{self.learning_rate} * {self.A_minus} * y0 * x1 -" \
              f"u0 * t * {eligibility_trace_decay_tau}"
