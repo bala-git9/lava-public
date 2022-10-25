@@ -55,6 +55,8 @@ class LearningConnection:
     tag_2 = None
     tag_1 = None
 
+    time_step = None
+
     def __init__(self, proc_params: dict) -> None:
         super().__init__(proc_params)
 

@@ -18,7 +18,7 @@ from lava.magma.core.learning.learning_rule import LoihiUCLearningRule
 from lava.magma.core.learning.utils import float_to_literal
 
 
-class RewardModulatedSTDP(LoihiUCLearningRule):
+class RewardModulatedSTDP(LoihiLearningRule):
     def __init__(
             self,
             learning_rate: float,
